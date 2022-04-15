@@ -1,8 +1,71 @@
 # sourcery skip: use-fstring-for-concatenation
+
 from cvzone.HandTrackingModule import HandDetector
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import cv2
+from keras.models import load_model
+import tensorflow as tf
+from tensorflow import keras
+import os
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D, Activation, Dense, Flatten
+import progressbar
+import mediapipe
 import cv2
 import time
 import copy
+
+
+def num_to_letter(numbers):
+    sentence = ""
+    letters = [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "O",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z",
+        "del",
+        "nothing",
+        "space",
+    ]
+    for i in range(len(numbers)):
+        if numbers[i] == "del":
+            sentence = sentence.rstrip(sentence[-1])
+        elif numbers[i] == "nothing":
+            break
+        elif numbers[i] == "space":
+            sentence += " "
+        else:
+            sentence += letters[numbers[i]]
+
+    return sentence
+
+
+model = keras.models.load_model("CNN_model.h5")
 
 cap = cv2.VideoCapture(0)
 detector = HandDetector(detectionCon=0.8, maxHands=1)
@@ -26,7 +89,13 @@ while True:
             if hand[0]["bbox"][0] + hand[0]["bbox"][2] + 20 < img.shape[1]
             else hand[0]["bbox"][0] + hand[0]["bbox"][2],
         ]
+        final_img = cv2.resize(img2, (64, 64))
+        final_img = cv2.cvtColor(final_img, cv2.COLOR_BGR2RGB)
+        final_img = np.expand_dims(final_img, axis=0)
         cv2.imshow("Result", img2)
+        pred = model.predict(final_img)
+        test_val = np.argmax(pred, axis=1)
+        print(num_to_letter(test_val))
         time_curr = time.time()
     cv2.imshow("Image", imgP)
     cv2.waitKey(1)
