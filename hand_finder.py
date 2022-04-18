@@ -68,38 +68,46 @@ def num_to_letter(numbers):
 
 model = keras.models.load_model("CNN_model.h5")
 
-
 cap = cv2.VideoCapture(0)
 detector = HandDetector(detectionCon=0.8, maxHands=1)
 time_curr = time.time()
+
+output = "Predicted string: "
+
 while not keyboard.is_pressed("q"):
     __s, img = cap.read()
     tmp = copy.copy(img)
     hand, imgP = detector.findHands(img)
 
+    if keyboard.is_pressed("a"):
+        print("Completed word: " + output[17:])
+        break
+
     if hand and len(hand) == 1 and time.time() >= time_curr + 1:
-        img2 = tmp[
-            hand[0]["bbox"][1] - 50
-            if hand[0]["bbox"][1] > 50
-            else hand[0]["bbox"][1] : hand[0]["bbox"][1] + hand[0]["bbox"][3] + 50
-            if hand[0]["bbox"][1] + hand[0]["bbox"][3] + 50 < img.shape[0]
-            else hand[0]["bbox"][1] + hand[0]["bbox"][3],
-            hand[0]["bbox"][0] - 50
-            if hand[0]["bbox"][0] > 50
-            else hand[0]["bbox"][1] : hand[0]["bbox"][0] + hand[0]["bbox"][2] + 50
-            if hand[0]["bbox"][0] + hand[0]["bbox"][2] + 50 < img.shape[1]
-            else hand[0]["bbox"][0] + hand[0]["bbox"][2],
-        ]
+        if hand[0]["bbox"][3] > hand[0]["bbox"][2]:
+            img2 = tmp[
+                hand[0]["bbox"][1] - 50 : hand[0]["bbox"][1] + hand[0]["bbox"][3] + 100,
+                hand[0]["bbox"][0] - 50 : hand[0]["bbox"][0] + hand[0]["bbox"][3] + 100,
+            ]
+        else:
+            img2 = tmp[
+                hand[0]["bbox"][1] - 50 : hand[0]["bbox"][1] + hand[0]["bbox"][2] + 100,
+                hand[0]["bbox"][0] - 50 : hand[0]["bbox"][0] + hand[0]["bbox"][2] + 100,
+            ]
+
         try:
-            final_img = cv2.resize(img2, (64, 64))
-            final_img = cv2.cvtColor(final_img, cv2.COLOR_BGR2RGB)
-            final_img = np.expand_dims(final_img, axis=0)
+            final_img = cv2.resize(img2, (64, 64), interpolation=cv2.INTER_AREA)
+            final_img = np.array(final_img)
+            final_img = final_img.reshape((-1, 64, 64, 3))
             cv2.imshow("Result", img2)
             pred = model.predict(final_img)
             test_val = np.argmax(pred, axis=1)
-            print(num_to_letter(test_val))
             time_curr = time.time()
+            if output[-1:] != num_to_letter(test_val):
+                output = output + num_to_letter(test_val)
+            print(output)
         except:
+            print("Please bring hand closer to center")
             pass
 
     cv2.imshow("Image", imgP)
