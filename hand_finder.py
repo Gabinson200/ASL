@@ -2,22 +2,13 @@
 
 from cvzone.HandTrackingModule import HandDetector
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import cv2
-from keras.models import load_model
-import tensorflow as tf
 from tensorflow import keras
-import os
-from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Activation, Dense, Flatten
-import progressbar
-import mediapipe
 import cv2
 import time
 import copy
 import keyboard
+from autocorrect import Speller
 
 
 def num_to_letter(numbers):
@@ -49,9 +40,9 @@ def num_to_letter(numbers):
         "X",
         "Y",
         "Z",
-        "del",
-        "nothing",
-        "space",
+        chr(8),
+        chr(0),
+        chr(20),
     ]
     for i in range(len(numbers)):
         if numbers[i] == "del":
@@ -80,7 +71,7 @@ while not keyboard.is_pressed("q"):
     hand, imgP = detector.findHands(img)
 
     if keyboard.is_pressed("a"):
-        print("Completed word: " + output[17:])
+        print(f"Completed word: {output[17:]}")
         break
 
     if hand and len(hand) == 1 and time.time() >= time_curr + 1:
@@ -106,12 +97,18 @@ while not keyboard.is_pressed("q"):
             if output[-1:] != num_to_letter(test_val):
                 output = output + num_to_letter(test_val)
             print(output)
-        except:
+        except Exception:
             print("Please bring hand closer to center")
-            pass
-
     cv2.imshow("Image", imgP)
     cv2.waitKey(1)
+
+
+# output = output[17:]
+# fin_str = ""
+# spell = Speller(lang="en")
+# for word in output.split():
+#    fin_str = fin_str + spell(word) + " "
+# print(f"Final prediction: {fin_str}")
 
 cap.release()
 cv2.destroyAllWindows()
