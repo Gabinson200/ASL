@@ -39,9 +39,9 @@ def num_to_letter(numbers):
         "X",
         "Y",
         "Z",
-        chr(8),
-        chr(0),
-        chr(20),
+        " delete ",
+        " nothing ",
+        " ",
     ]
     for i in range(len(numbers)):
         if numbers[i] == "del":
@@ -95,6 +95,8 @@ while True:
         except Exception:
             print("Please bring hand closer to center")
     cv2.imshow("Image", imgP)
+    if cv2.waitKey(1) == ord("."):
+        output = "Predicted string: "
     if cv2.waitKey(1) == ord("q"):
         break
 
