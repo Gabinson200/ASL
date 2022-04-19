@@ -7,7 +7,6 @@ from tensorflow import keras
 import cv2
 import time
 import copy
-import keyboard
 from autocorrect import Speller
 
 
@@ -57,7 +56,7 @@ def num_to_letter(numbers):
     return sentence
 
 
-model = keras.models.load_model("CNN_model.h5")
+model = keras.models.load_model("CNN_model_GOOD.h5")
 
 cap = cv2.VideoCapture(0)
 detector = HandDetector(detectionCon=0.8, maxHands=1)
@@ -65,14 +64,10 @@ time_curr = time.time()
 
 output = "Predicted string: "
 
-while not keyboard.is_pressed("q"):
+while True:
     __s, img = cap.read()
     tmp = copy.copy(img)
     hand, imgP = detector.findHands(img)
-
-    if keyboard.is_pressed("a"):
-        print(f"Completed word: {output[17:]}")
-        break
 
     if hand and len(hand) == 1 and time.time() >= time_curr + 1:
         if hand[0]["bbox"][3] > hand[0]["bbox"][2]:
@@ -100,15 +95,16 @@ while not keyboard.is_pressed("q"):
         except Exception:
             print("Please bring hand closer to center")
     cv2.imshow("Image", imgP)
-    cv2.waitKey(1)
+    if cv2.waitKey(1) == ord("q"):
+        break
 
 
-# output = output[17:]
-# fin_str = ""
-# spell = Speller(lang="en")
-# for word in output.split():
-#    fin_str = fin_str + spell(word) + " "
-# print(f"Final prediction: {fin_str}")
+output = output[17:]
+fin_str = ""
+spell = Speller(lang="en")
+for word in output.split():
+    fin_str = fin_str + spell(word) + " "
+print(f"Final prediction: {fin_str}")
 
 cap.release()
 cv2.destroyAllWindows()
